@@ -46,7 +46,6 @@ void main(void) {
 
     while(1){ 
         
-        
         LATD |= MASK_LED1;
         wait_125ms();//Attente
         LATD = 0x00;// Mise à zéro des LED1-4
