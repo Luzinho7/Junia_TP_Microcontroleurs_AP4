@@ -1,6 +1,8 @@
-#include "configbits.h" 
-#include <xc.h>         
-#define _XTAL_FREQ 8000000
+#include "configbits.h"
+#include <xc.h>
+#include "leds.h"
+#include "timers2.h"
+#include "interrupts.h"
 
 // Définitions des masques de LED
 #define MASK_LED1 0X01 //LED1
@@ -17,20 +19,6 @@
 unsigned int compteur_temps = 0; 
 unsigned int LED = 0;
 
-/* Configuration du timer2 avec une période de 100 us */
-void config_timer2(void){
-PR2 = 24; 
-T2CONbits.T2CKPS = 1; // Prescaler = 1:4
-T2CONbits.T2OUTPS = 1; // Postscaler = 1:2
-T2CONbits.TMR2ON = 1; // Timer2 activé
-}
-/* Configuration de l'interruption du Timer2 */
-void config_interrupts(void){
-    PIE1bits.TMR2IE = 1;    // Activer interrupt Timer 2
-    PIR1bits.TMR2IF = 0;    //Mise a zéro du flag 
-    INTCONbits.PEIE = 1;    
-    INTCONbits.GIE = 1;    
-}
 /*Routine d'interruption*/
 void __interrupt() isr_toggle_LED (void){
     if (PIE1bits.TMR2IE && PIR1bits.TMR2IF){
@@ -63,12 +51,8 @@ void __interrupt() isr_toggle_LED (void){
 }
 
 void main(void) {
-   
-    LATD = 0x00;// Mise à zéro des LED1-4
-    LATB = 0x00;// Mise à zéro des LED5-8
-    TRISD = 0x00; // Tout le port D en sortie 
-    TRISB = 0x00; // Tout le port B en sortie 
     
+    led_init();
     config_timer2(); //Appel de fonction
     config_interrupts();//Appel de fonction
 
