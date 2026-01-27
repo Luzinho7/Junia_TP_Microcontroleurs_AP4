@@ -47,28 +47,80 @@ void main(void) {
 while(1) {
     if(read_adc() < 32){
         LED1 = 1;
-    }else if (read_adc() < 64){
-        LED2 = 1;}
-    else if (read_adc() < 96){
-        LED3 = 1;}
-    else if (read_adc() < 128){
-        LED4 = 1;}
-    else if (read_adc() < 160){
-        LED5 = 1;}
-    else if (read_adc() < 192){
-        LED6 = 1;}
-    else if (read_adc() <  224){ 
-        LED7 = 1;}
-    else {
-        LED8 = 1;}
-    
-    LED1=0;
-    LED2=0;
+        LED2=0;
     LED3=0;
     LED4=0;
     LED5=0;
     LED6=0;
     LED7=0;
     LED8=0;
+        
+    }else if (read_adc() < 64){
+        LED2 = 1;
+        LED1=0;
+    LED3=0;
+    LED4=0;
+    LED5=0;
+    LED6=0;
+    LED7=0;
+    LED8=0;
+    }
+    else if (read_adc() < 96){
+        LED3 = 1;
+    LED1=0;
+    LED2=0;
+    LED4=0;
+    LED5=0;
+    LED6=0;
+    LED7=0;
+    LED8=0;
+}
+    else if (read_adc() < 128){
+        LED4 = 1;
+    LED2=0;
+    LED3=0;
+    LED1=0;
+    LED5=0;
+    LED6=0;
+    LED7=0;
+    LED8=0;}
+    else if (read_adc() < 160){
+        LED5 = 1;
+    LED2=0;
+    LED3=0;
+    LED4=0;
+    LED1=0;
+    LED6=0;
+    LED7=0;
+    LED8=0;}
+    else if (read_adc() < 192){
+        LED6 = 1;
+    LED2=0;
+    LED3=0;
+    LED4=0;
+    LED5=0;
+    LED1=0;
+    LED7=0;
+    LED8=0;}
+    else if (read_adc() <  224){ 
+        LED7 = 1;
+    LED2=0;
+    LED3=0;
+    LED4=0;
+    LED5=0;
+    LED6=0;
+    LED1=0;
+    LED8=0;}
+    else {
+        LED8 = 1;
+    LED2=0;
+    LED3=0;
+    LED4=0;
+    LED5=0;
+    LED6=0;
+    LED7=0;
+    LED1=0;
+    }
+    
 }
 }
