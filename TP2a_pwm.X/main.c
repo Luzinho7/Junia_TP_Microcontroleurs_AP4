@@ -29,33 +29,24 @@ void init_rb0(void){
 }
 
 void led(void){
-    
-    TRISDbits.TRISD0 = 0;
+    TRISDbits.TRISD0 = 0; // LED D1
     
 }
-
 void main(void) {
     
-    config_timer2();
-    config_pwm4();
-    init_rb0();
-    led();
+    config_timer2();// Appel de la fonction
+    config_pwm4();// Appel de la fonction
+    init_rb0();// Appel de la fonction
+    led();// Appel de la fonction
     
-    while(1){
+    while(1){ // boucle
         
-        if (PORTBbits.RB0 == 0){
-            PWM4DCH = 249;
+        if (PORTBbits.RB0 == 0){ // Si bouton appuyé 
+            PWM4DCH = 249; // Luminosité très forte
         }
-        else{
-            PWM4DCH = 24;
+        else{ // Sinon 
+            PWM4DCH = 24; // Luminosité faible
         }
-            
-           
-           
-        
-        
-        
-        
     }
     
 }
