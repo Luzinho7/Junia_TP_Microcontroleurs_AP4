@@ -4,6 +4,12 @@
 #include "spi.h"
 #define _XTAL_FREQ 8000000
 
+const char ALPHABET [] = "0123456789abcdefghijklmnopqrstuvwxyz";
+const int ALPHABET_SIZE = 36;
+
+int offset = 0;
+int encryptionStatus = 0;
+
 void uart_config(){
     
     PIE1bits.TXIE = 0;                      /* disable UART interrupts */
@@ -47,12 +53,6 @@ void config_interrupts(void){
     INTCONbits.GIE = 1;     
 }
 
-void __interrupt() isr(void) {
-    char carac = read();
-    PIR1bits.RCIF = 0;  
-    UART_SendChar (carac);
-}
-
 void init_rb0(void){
     // Bouton RB0
     TRISBbits.TRISB0 = 1;
@@ -76,40 +76,116 @@ char read_adc(void){
         return ADRESH; // Retourner les 8bits de poids fort du résultat
         }
 
+int get_val(char c) {
+    // Gestion de '0'-'9
+    if (c >= '0' && c <= '9') {
+        return c - '0'; 
+    }
+    
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 10;
+    }
+    return -1; 
+}
+
+char cesar(char c) {
+    int new_val;
+    int val_cesar = get_val(c);
+    if (c >= 'A' && c <= 'Z') {
+        c = c + ('a' - 'A'); 
+    }
+    if (val_cesar == -1) return 0;
+    
+    if (encryptionStatus == 0) {
+        new_val = (val_cesar + offset) % ALPHABET_SIZE;
+    } else { 
+        new_val = val_cesar - offset;
+        while (new_val < 0) {
+            new_val += ALPHABET_SIZE;
+        }
+        new_val = new_val % ALPHABET_SIZE;
+    }
+    return ALPHABET[new_val];
+}
+
+void __interrupt() isr(void) {
+    
+    char carac = read();
+    char result = cesar(carac);
+        // On renvoie une valeur valide
+        if (result != 0) {
+        UART_SendChar(result);
+}
+}
+    
+
+void affichage(void){
+    LCD_Clear();
+    LCD_GoTo(0,0);
+    LCD_WriteString("Offset : ");
+    LCD_WriteByte((offset / 10) + '0'); // Fonction dans LCD.h
+    LCD_WriteByte((offset % 10) + '0'); // Fonction dans LCD.h
+    
+    LCD_GoTo(1,0);
+    if (encryptionStatus){
+        LCD_WriteString("Dechiffrement");
+    } else {
+        LCD_WriteString("Chiffrement");
+    }
+}
+
+void init_offset(void){
+    unsigned int val_adc = read_adc();
+    // 255 (max Potentiomètre) / 7 = 36.4
+    unsigned int new_offset = val_adc / 7;// On limite à 35
+    
+    if (new_offset >= ALPHABET_SIZE) {
+        new_offset = ALPHABET_SIZE - 1;
+    }
+    //Maj de l'affichage
+    if (new_offset != offset){
+        offset = new_offset;
+        affichage();
+    }
+}
 
 void main(void) {
     
+    //Initialisation du Boutton, potentiomètre et LCD.
     init_rb0();
     uart_config();    
     config_adc();
-    read_adc();
-    config_interrupts();
     SPI_InitializePins();
     LCD_InitializePins();
     SPI_Initialize();
     LCD_Initialize();
     
-        
-        int mode = 0;
-        int bouton2 = 1;
-
-        LCD_Clear();
-        LCD_GoTo(0,0);
-        LCD_WriteString("Offset : ");
-        LCD_GoTo(1,0);
-        LCD_WriteString("Chiffrement ");
-
+    
+    read_adc(); // Première lecture du potentiomètre
+    init_offset(); // Init offset
+    affichage();     // Premier affichage
+    config_interrupts();// Interruptions
+    
     while(1){
-        int bouton = PORTBbits.RB0;
-        if (bouton == 0 && bouton2 == 1) {
-            mode = !mode; 
-            LCD_GoTo(1,0);
-            if (mode == 1) {
-                LCD_WriteString("Dechiffrement "); 
-            } else {
-                LCD_WriteString("Chiffrement   "); 
+        
+        if (!PORTBbits.RB0) {
+            __delay_ms(50); 
+            if (!PORTBbits.RB0) {
+                
+                if (encryptionStatus == 0){ //En Chiffrement
+                    encryptionStatus = 1; //En dechiffrement
+                } else {
+                    encryptionStatus = 0;//En Chiffrement
+                }
+                affichage(); // Affiche l'écran en temps réel
+                
+                while(!PORTBbits.RB0); 
+                __delay_ms(50);
             }
-            _delay(50);
+        } 
+        // Mise à jour de l'offset 
+       init_offset();
+        __delay_ms(10);
+    }
 }
-}
-}
+
