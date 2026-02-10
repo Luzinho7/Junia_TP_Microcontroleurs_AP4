@@ -118,7 +118,6 @@ void __interrupt() isr(void) {
 }
 }
     
-
 void affichage(void){
     LCD_Clear();
     LCD_GoTo(0,0);
