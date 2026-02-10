@@ -14,6 +14,7 @@ void uart_config(){
     RC6PPS = 0b10100;                       /* Assign UART TX to RC6 */
     
     TRISCbits.TRISC6 = 0;                             /* sets UART TX pin RC6 as an output */
+    LATCbits.LATC6 = 0;
     TRISCbits.TRISC7 = 1; // RC7 : Entrée numérique
     ANSELCbits.ANSC7 = 0;
     
@@ -39,13 +40,7 @@ void UART_SendChar(char data)
     TX1REG = data;
 }
 
-void UART_SendString(const char *text)
-{
-    while(*text)
-    {
-        UART_SendChar(*text++);
-    }
-}
+
 
 void config_interrupts(void){
     INTCONbits.PEIE = 1;    
@@ -65,15 +60,15 @@ void init_rb0(void){
     RD0PPS = 0x0F;
 }
 
+
 void config_adc(void){
         TRISAbits.TRISA0 = 1; 
         ANSELAbits.ANSA0 = 1; //Conversion Analogique
-        TRISD = 0; //LED 1 a 4 en sortie
-        TRISB = 0; //LED 5 A 8 en sortie
         ADCON0bits.CHS = 0b00000; // Entrée : potentiomètre
         ADCON1bits.ADFM = 0; // Format : justifié à gauche
         ADCON0bits.ADON = 1; // ADC : en marche
         }
+
     /* Lecture de la valeur sur 8 bits */
 char read_adc(void){
         ADCON0bits.GO = 1; // Lancer la lecture de l?ADC
@@ -85,45 +80,36 @@ char read_adc(void){
 void main(void) {
     
     init_rb0();
-    uart_config();             
+    uart_config();    
+    config_adc();
+    read_adc();
     config_interrupts();
     SPI_InitializePins();
     LCD_InitializePins();
     SPI_Initialize();
     LCD_Initialize();
-    LCD_Clear();
-    LCD_GoTo(0,0);
-    LCD_WriteString("Offset : ");
-    config_adc();
-    read_adc();
     
-    while(1){
         
-        if (PORTBbits.RB0 == 0){
-            LCD_Clear(),
-            LCD_GoTo(1,0),
-            LCD_WriteString("Dechiffrement ");
-        }
-        else LCD_Clear(),
-             LCD_GoTo(1,0),
-             LCD_WriteString("Chiffrement ");
-       
-        if ( read_adc () < 32 ){
-            
-        }else if (read_adc () < 64 ){
-            
-        }else if (read_adc () < 96 ){
-            
-        }else if (read_adc () < 128 ){
-            
-        }else if (read_adc () < 160 ){
-            
-        }else if (read_adc () < 192 ){
-            
-        } else if (read_adc () < 224 ){
-            
-        }else{
-            
-        }
+        int mode = 0;
+        int bouton2 = 1;
+
+        LCD_Clear();
+        LCD_GoTo(0,0);
+        LCD_WriteString("Offset : ");
+        LCD_GoTo(1,0);
+        LCD_WriteString("Chiffrement ");
+
+    while(1){
+        int bouton = PORTBbits.RB0;
+        if (bouton == 0 && bouton2 == 1) {
+            mode = !mode; 
+            LCD_GoTo(1,0);
+            if (mode == 1) {
+                LCD_WriteString("Dechiffrement "); 
+            } else {
+                LCD_WriteString("Chiffrement   "); 
+            }
+            _delay(50);
+}
 }
 }
